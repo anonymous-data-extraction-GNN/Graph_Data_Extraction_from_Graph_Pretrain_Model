@@ -17,7 +17,7 @@ torch-spline-conv      1.0.6
 rdkit                  2019.03.1.0
 tqdm                   4.31.1
 tensorboardX           1.6
-```'''```
+```
 
 ## Pre-training
 We use context prediction task to pre-train GNN.
@@ -26,17 +26,16 @@ python pretrain_contextpred.py --dataset zinc_standard_agent_pretrain --output_m
 ```
 
 ## Graph Data Extraction Attack
-### estimate the graph context model
+### Estimate the graph context model
 ```
 python esitmate_graph_context_model.py --dataset zinc_standard_agent_attack --output_model_file saved/estimated.pth
 ```
 
+### Graph data extraction
 ### 
 ```
 python 
 ```
-
-## Attack Performance Evaluation
 
 
 
