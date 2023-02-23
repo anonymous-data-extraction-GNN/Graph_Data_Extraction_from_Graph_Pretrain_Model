@@ -26,12 +26,12 @@ python pretrain_contextpred.py --dataset zinc_standard_agent_pretrain --output_m
 ```
 
 ## Graph Data Extraction Attack
-### Estimate the graph context model
+### estimate the graph context model
 ```
 python esitmate_graph_context_model.py --dataset zinc_standard_agent_attack --output_model_file saved/estimated.pth
 ```
 
-### Graph data extraction
+### Graph Data Extraction
 ### 
 ```
 python 
