@@ -41,69 +41,6 @@ def cycle_index(num, shift):
 
 criterion = nn.BCEWithLogitsLoss()
 
-def test(args, model_substruct, model_context, loader_positive, loader_negative, device):
-    model_substruct.eval()
-    model_context.eval()
-
-    pos_scores = []
-    for batch_pos in loader_positive:
-        batch_pos = batch_pos.to(device)
-        substruct_rep_pos = model_substruct(batch_pos.x_substruct, batch_pos.edge_index_substruct, batch_pos.edge_attr_substruct)[
-            batch_pos.center_substruct_idx]
-        overlapped_node_rep_pos = model_context(batch_pos.x_context, batch_pos.edge_index_context, batch_pos.edge_attr_context)[
-            batch_pos.overlap_context_substruct_idx]
-        context_rep = pool_func(overlapped_node_rep_pos, batch_pos.batch_overlapped_context, mode=args.context_pooling)
-        pred_pos = torch.sum(substruct_rep_pos * context_rep, dim=1).detach().cpu()
-        pos_scores.append(pred_pos)
-
-    neg_scores = []
-    for batch_neg in loader_negative:
-        batch_neg = batch_neg.to(device)
-        substruct_rep_neg = model_substruct(batch_neg.x_substruct, batch_neg.edge_index_substruct, batch_neg.edge_attr_substruct)[
-            batch_neg.center_substruct_idx]
-        overlapped_node_rep_neg = model_context(batch_neg.x_context, batch_neg.edge_index_context, batch_neg.edge_attr_context)[
-            batch_neg.overlap_context_substruct_idx]
-        neg_context_rep = pool_func(overlapped_node_rep_neg, batch_neg.batch_overlapped_context, mode=args.context_pooling)
-        pred_neg = torch.sum(substruct_rep_neg * neg_context_rep, dim=1).detach().cpu()
-        neg_scores.append(pred_neg)
-    
-    pos_scores = torch.cat(pos_scores)
-    neg_scores = torch.cat(neg_scores)
-
-    return pos_scores, neg_scores
-
-
-def test2(args, model_substruct, model_context, loader_positive, loader_negative, device):
-    model_substruct.train()
-    model_context.train()
-
-    pos_scores = []
-    for batch_pos in loader_positive:
-        batch_pos = batch_pos.to(device)
-        substruct_rep_pos = model_substruct(batch_pos.x_substruct, batch_pos.edge_index_substruct, batch_pos.edge_attr_substruct)[
-            batch_pos.center_substruct_idx]
-        overlapped_node_rep_pos = model_context(batch_pos.x_context, batch_pos.edge_index_context, batch_pos.edge_attr_context)[
-            batch_pos.overlap_context_substruct_idx]
-        context_rep = pool_func(overlapped_node_rep_pos, batch_pos.batch_overlapped_context, mode=args.context_pooling)
-        pred_pos = torch.sum(substruct_rep_pos * context_rep, dim=1).detach().cpu()
-        pos_scores.append(pred_pos)
-
-    neg_scores = []
-    for batch_neg in loader_negative:
-        batch_neg = batch_neg.to(device)
-        substruct_rep_neg = model_substruct(batch_neg.x_substruct, batch_neg.edge_index_substruct, batch_neg.edge_attr_substruct)[
-            batch_neg.center_substruct_idx]
-        overlapped_node_rep_neg = model_context(batch_neg.x_context, batch_neg.edge_index_context, batch_neg.edge_attr_context)[
-            batch_neg.overlap_context_substruct_idx]
-        neg_context_rep = pool_func(overlapped_node_rep_neg, batch_neg.batch_overlapped_context, mode=args.context_pooling)
-        pred_neg = torch.sum(substruct_rep_neg * neg_context_rep, dim=1).detach().cpu()
-        neg_scores.append(pred_neg)
-    
-    pos_scores = torch.cat(pos_scores)
-    neg_scores = torch.cat(neg_scores)
-
-    return pos_scores, neg_scores
-
 def train(args, model_substruct, model_context, loader, optimizer_substruct, optimizer_context, device, forgetting_reg_substruct, forgetting_reg_context):
     model_substruct.train()
     model_context.train()
@@ -200,10 +137,10 @@ def main():
     print("num layer: %d l1: %d l2: %d" %(args.num_layer, l1, l2))
 
     #set up dataset and transform function.
-    dataset_pos = MoleculeDatasetForAttack(f"dataset_attack/training_dataset/{args.scaffold_smiles}/pos", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
-    dataset_neg = MoleculeDatasetForAttack(f"dataset_attack/training_dataset/{args.scaffold_smiles}/neg", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
+    dataset_pos = MoleculeDatasetForAttack(f"dataset/attack/{args.scaffold_smiles}/pos", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
+    dataset_neg = MoleculeDatasetForAttack(f"dataset/attack/{args.scaffold_smiles}/neg", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
 
-    dataset = MoleculeDatasetForAttack(f"dataset_attack/training_dataset/{args.scaffold_smiles}", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
+    dataset = MoleculeDatasetForAttack(f"dataset/attack/{args.scaffold_smiles}", dataset=None, transform = ExtractSubstructureContextPair(args.num_layer, l1, l2))
     loader = DataLoaderSubstructContext(dataset, batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
 
     # 平衡正负样本比
